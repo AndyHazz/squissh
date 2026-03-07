@@ -11,7 +11,7 @@
     "Id": "com.github.andyhazz.squissh",
     "Name": "SquiSSH",
     "EnabledByDefault": true,
-    "Version": "1.6.0",
+    "Version": "1.6.1",
     "License": "GPL-3.0",
     "BugReportUrl": "https://github.com/AndyHazz/squissh/issues",
     "Website": "https://github.com/AndyHazz/squissh"
