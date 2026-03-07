@@ -35,6 +35,8 @@ KCMUtils.SimpleKCM {
     property bool cfg_showIconsDefault
     property alias cfg_showLastConnected: showLastConnectedCheck.checked
     property bool cfg_showLastConnectedDefault
+    property alias cfg_showQuickCommands: showQuickCommandsCheck.checked
+    property bool cfg_showQuickCommandsDefault
 
     // Programmatic config entries (not exposed in settings UI)
     property string cfg_favorites
@@ -126,6 +128,19 @@ KCMUtils.SimpleKCM {
         QQC2.CheckBox {
             id: showLastConnectedCheck
             Kirigami.FormData.label: i18n("Show last connected time:")
+        }
+
+        QQC2.CheckBox {
+            id: showQuickCommandsCheck
+            Kirigami.FormData.label: i18n("Show quick commands:")
+        }
+
+        QQC2.Label {
+            text: i18n("Shows command buttons inline below each host")
+            font: Kirigami.Theme.smallFont
+            color: Kirigami.Theme.disabledTextColor
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
         }
 
         QQC2.CheckBox {

@@ -71,6 +71,7 @@ PlasmaExtras.Representation {
                 }
                 Keys.onDownPressed: {
                     if (hostListView.count > 0) {
+                        hostListView.keyboardNavigating = true
                         hostListView.currentIndex = hostListView.nextHostIndex(0)
                         hostListView.forceActiveFocus()
                     }
@@ -92,6 +93,7 @@ PlasmaExtras.Representation {
                 if (plasmoid.configuration.enableSearch) {
                     searchField.forceActiveFocus()
                 } else {
+                    hostListView.keyboardNavigating = true
                     hostListView.forceActiveFocus()
                 }
                 root.refreshIfStale()
@@ -124,10 +126,12 @@ PlasmaExtras.Representation {
                 keyNavigationEnabled: false
                 highlightFollowsCurrentItem: true
                 highlightMoveDuration: 0
+                property bool keyboardNavigating: false
                 onActiveFocusChanged: {
-                    if (activeFocus && currentIndex < 0) {
+                    if (activeFocus && currentIndex < 0 && keyboardNavigating) {
                         currentIndex = nextHostIndex(0)
                     }
+                    if (!activeFocus) keyboardNavigating = false
                 }
 
                 function nextHostIndex(from) {
@@ -239,7 +243,7 @@ PlasmaExtras.Representation {
     function buildFilteredModel() {
         var items = []
         var search = root.searchText.toLowerCase()
-        var hideOffline = plasmoid.configuration.hideUnreachable
+        var hideOffline = plasmoid.configuration.hideUnreachable && plasmoid.configuration.showStatus
         var grouping = plasmoid.configuration.enableGrouping
         var sortOrder = plasmoid.configuration.sortOrder || "config"
         var showRecentGroup = grouping && sortOrder !== "recent"
@@ -259,7 +263,7 @@ PlasmaExtras.Representation {
 
             for (var j = 0; j < group.hosts.length; j++) {
                 var h = group.hosts[j]
-                if (hideOffline && h.status !== "online") continue
+                if (hideOffline && h.status === "offline") continue
                 if (search !== "" &&
                     h.host.toLowerCase().indexOf(search) < 0 &&
                     h.hostname.toLowerCase().indexOf(search) < 0 &&

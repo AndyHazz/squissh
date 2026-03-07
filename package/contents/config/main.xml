@@ -35,6 +35,9 @@
     <entry name="showLastConnected" type="Bool">
       <default>true</default>
     </entry>
+    <entry name="showQuickCommands" type="Bool">
+      <default>false</default>
+    </entry>
     <entry name="showIcons" type="Bool">
       <default>true</default>
     </entry>
