@@ -96,7 +96,7 @@ QQC2.ItemDelegate {
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: Kirigami.Theme.disabledTextColor
                 opacity: 0.7
-                visible: itemData.lastConnected > 0
+                visible: itemData.lastConnected > 0 && plasmoid.configuration.showLastConnected
             }
         }
 

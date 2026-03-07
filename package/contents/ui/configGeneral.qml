@@ -33,6 +33,8 @@ KCMUtils.SimpleKCM {
     property bool cfg_discoverHostsDefault
     property alias cfg_showIcons: showIconsCheck.checked
     property bool cfg_showIconsDefault
+    property alias cfg_showLastConnected: showLastConnectedCheck.checked
+    property bool cfg_showLastConnectedDefault
 
     // Programmatic config entries (not exposed in settings UI)
     property string cfg_favorites
@@ -119,6 +121,11 @@ KCMUtils.SimpleKCM {
         QQC2.CheckBox {
             id: showIconsCheck
             Kirigami.FormData.label: i18n("Show host icons:")
+        }
+
+        QQC2.CheckBox {
+            id: showLastConnectedCheck
+            Kirigami.FormData.label: i18n("Show last connected time:")
         }
 
         QQC2.CheckBox {
