@@ -21,6 +21,7 @@ QQC2.ItemDelegate {
             Layout.preferredWidth: Kirigami.Units.smallSpacing * 2.5
             Layout.preferredHeight: Kirigami.Units.smallSpacing * 2.5
             Layout.leftMargin: Kirigami.Units.smallSpacing
+            Layout.rightMargin: Kirigami.Units.smallSpacing
             radius: width / 2
             visible: plasmoid.configuration.showStatus
             color: {
