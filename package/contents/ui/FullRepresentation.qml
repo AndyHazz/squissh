@@ -216,6 +216,8 @@ PlasmaExtras.Representation {
             host: h.host,
             hostname: h.hostname,
             user: h.user,
+            port: h.port || "",
+            noSftp: h.noSftp || false,
             icon: h.icon,
             status: h.status,
             discovered: discovered || false,

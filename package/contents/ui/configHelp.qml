@@ -91,6 +91,16 @@ KCMUtils.SimpleKCM {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
             }
+
+            QQC2.Label {
+                text: "<b># NoSFTP</b>"
+                textFormat: Text.RichText
+            }
+            QQC2.Label {
+                text: i18n("Hide the file manager (SFTP) button for the next Host entry. Useful for hosts that don't support SFTP, such as routers or embedded devices.")
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+            }
         }
 
         Kirigami.Separator {}
@@ -118,7 +128,7 @@ KCMUtils.SimpleKCM {
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 wrapMode: Text.WordWrap
                 textFormat: Text.PlainText
-                text: "# Local terminal with custom commands\n# Icon squissh\n# Command htop\n# Command btop\n# Command journalctl -f\nHost local\n    HostName localhost\n\n# GroupStart Production Servers\n\n# Icon network-server-database\n# Command tail -f /var/log/syslog\n# Command systemctl status nginx\nHost prod-db\n    HostName 10.0.1.10\n    User admin\n\nHost prod-web\n    HostName 10.0.1.20\n    User deploy\n\n# GroupEnd\n\n# GroupStart Home Lab\n\n# Icon ~/.local/share/icons/squissh/pihole.png\n# MAC aa:bb:cc:dd:ee:ff\nHost pihole\n    HostName 192.168.1.50\n    User pi\n\nHost nas\n    HostName 192.168.1.100\n    User admin\n\n# GroupEnd\n\n# Hosts outside groups appear under \"Ungrouped\"\nHost personal-vps\n    HostName example.com\n    User me"
+                text: "# Local terminal with custom commands\n# Icon squissh\n# Command htop\n# Command btop\n# Command journalctl -f\nHost local\n    HostName localhost\n\n# GroupStart Production Servers\n\n# Icon network-server-database\n# Command tail -f /var/log/syslog\n# Command systemctl status nginx\nHost prod-db\n    HostName 10.0.1.10\n    User admin\n\nHost prod-web\n    HostName 10.0.1.20\n    User deploy\n\n# GroupEnd\n\n# GroupStart Home Lab\n\n# Icon ~/.local/share/icons/squissh/pihole.png\n# MAC aa:bb:cc:dd:ee:ff\nHost pihole\n    HostName 192.168.1.50\n    User pi\n\n# NoSFTP\nHost router\n    HostName 192.168.1.1\n    User admin\n\nHost nas\n    HostName 192.168.1.100\n    User admin\n\n# GroupEnd\n\n# Hosts outside groups appear under \"Ungrouped\"\nHost personal-vps\n    HostName example.com\n    User me"
             }
         }
 
@@ -155,7 +165,7 @@ KCMUtils.SimpleKCM {
         }
 
         QQC2.Label {
-            text: i18n("• Wildcard hosts (e.g. Host *) are automatically skipped.\n• The # Icon, # MAC, and # Command directives apply to the next Host entry only.\n• # Command can be repeated multiple times to add several commands to one host.\n• Wake-on-LAN requires the 'wakeonlan' package to be installed.")
+            text: i18n("• Wildcard hosts (e.g. Host *) are automatically skipped.\n• The # Icon, # MAC, # Command, and # NoSFTP directives apply to the next Host entry only.\n• # Command can be repeated multiple times to add several commands to one host.\n• Hosts with a non-standard SSH port use a TCP connection check instead of ping for status detection.\n• Wake-on-LAN requires the 'wakeonlan' package to be installed.")
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }

@@ -28,7 +28,7 @@
 - **Wake-on-LAN** via `#MAC` directive (right-click offline hosts)
 - **Per-host custom commands** via `#Command` directive (with optional display names)
 - Pin favorite hosts to the top
-- Live online/offline status via ping
+- Live online/offline status via ping (TCP port check for non-standard SSH ports)
 - Search/filter hosts, or connect to arbitrary hostnames
 - One-click SFTP file manager access
 - mDNS/Avahi network host discovery
@@ -83,6 +83,11 @@ Host pihole
     HostName 192.168.1.50
     User pi
 
+# NoSFTP
+Host router
+    HostName 192.168.1.1
+    User admin
+
 Host nas
     HostName 192.168.1.100
     User admin
@@ -103,6 +108,7 @@ Host personal-vps
 | `# Icon <name or path>` | Set a KDE icon or image path for the next host |
 | `# MAC <xx:xx:xx:xx:xx:xx>` | Set MAC address for Wake-on-LAN on the next host |
 | `# Command [Name] <command>` | Add a custom command with optional display name (repeatable) |
+| `# NoSFTP` | Hide the SFTP file browser button for the next host |
 
 These are standard SSH comments and won't affect your SSH connections.
 

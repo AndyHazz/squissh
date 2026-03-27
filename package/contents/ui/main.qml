@@ -201,9 +201,15 @@ PlasmoidItem {
         connectedSources: []
         onNewData: (sourceName, data) => {
             disconnectSource(sourceName)
+            var status = data["exit code"] === 0 ? "online" : "offline"
             var match = sourceName.match(/ping\s+-c\s+1\s+-W\s+\d+\s+(.+)/)
             if (match) {
-                updateHostStatus(match[1], data["exit code"] === 0 ? "online" : "offline")
+                updateHostStatus(match[1], status)
+                return
+            }
+            var ncMatch = sourceName.match(/nc\s+-z\s+-w\s*\d+\s+(\S+)\s+\d+/)
+            if (ncMatch) {
+                updateHostStatus(ncMatch[1], status)
             }
         }
     }
@@ -272,8 +278,13 @@ PlasmoidItem {
         var timeout = plasmoid.configuration.pingTimeout || 2
         var queue = []
         for (var i = 0; i < hostList.length; i++) {
-            if (ShellUtil.isSafeHostname(hostList[i].hostname)) {
-                queue.push("ping -c 1 -W " + timeout + " " + hostList[i].hostname)
+            var host = hostList[i]
+            if (ShellUtil.isSafeHostname(host.hostname)) {
+                if (host.port && host.port !== "22") {
+                    queue.push("nc -z -w" + timeout + " " + host.hostname + " " + host.port)
+                } else {
+                    queue.push("ping -c 1 -W " + timeout + " " + host.hostname)
+                }
             }
         }
         root.pingQueue = queue
@@ -385,10 +396,11 @@ PlasmoidItem {
         return StateManager.isGroupCollapsed(collapsedGroups, groupName)
     }
 
-    function openSftp(host, user, hostname) {
+    function openSftp(host, user, hostname, port) {
         var url = "sftp://"
         if (user) url += user + "@"
         url += hostname
+        if (port && port !== "22") url += ":" + port
         launcher.connectSource("xdg-open " + url)
         root.expanded = false
     }

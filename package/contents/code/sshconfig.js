@@ -9,6 +9,7 @@
  *   #Icon <name>        — set icon for next Host block
  *   #MAC xx:xx:xx:xx:xx:xx — set MAC address for next Host (Wake-on-LAN)
  *   #Command [Name] <cmd>  — add named command (name is optional)
+ *   #NoSFTP             — disable SFTP file browser button for next Host
  *   Host <name>         — start host entry (skip wildcards)
  *   HostName <value>    — set hostname
  *   User <value>        — set user
@@ -22,7 +23,7 @@
  *   Include directives  — stored as raw text in rawBlocks[]
  *
  * Returns: {
- *   groups: [{name: string, hosts: [{host, hostname, user, port, identityFile, icon, mac, commands: [{name, cmd}], options}]}],
+ *   groups: [{name: string, hosts: [{host, hostname, user, port, identityFile, icon, mac, noSftp, commands: [{name, cmd}], options}]}],
  *   rawBlocks: string[]  — unmanaged content (wildcards, Match, Include) preserved for round-trip
  * }
  */
@@ -35,6 +36,7 @@ function parseConfig(text) {
     var currentHost = null
     var pendingIcon = ""
     var pendingMac = ""
+    var pendingNoSftp = false
     var pendingCommands = []
 
     // Track wildcard/unmanaged host blocks
@@ -106,6 +108,12 @@ function parseConfig(text) {
             continue
         }
 
+        // NoSFTP directive
+        if (line.match(/^#\s*NoSFTP\s*$/i)) {
+            pendingNoSftp = true
+            continue
+        }
+
         // Command directive (repeatable — accumulates into array)
         var cmdMatch = line.match(/^#\s*Command\s+(.+)/i)
         if (cmdMatch) {
@@ -159,6 +167,7 @@ function parseConfig(text) {
                 // Reset pending directives since they were meant for this host
                 pendingIcon = ""
                 pendingMac = ""
+                pendingNoSftp = false
                 pendingCommands = []
                 continue
             }
@@ -187,6 +196,7 @@ function parseConfig(text) {
                         icon: pendingIcon || "",
                         status: "unknown",
                         mac: pendingMac,
+                        noSftp: pendingNoSftp,
                         commands: pendingCommands.slice(),
                         options: []
                     }
@@ -202,6 +212,7 @@ function parseConfig(text) {
                         icon: pendingIcon || "",
                         status: "unknown",
                         mac: pendingMac,
+                        noSftp: pendingNoSftp,
                         commands: pendingCommands.slice(),
                         options: []
                     }
@@ -209,6 +220,7 @@ function parseConfig(text) {
             }
             pendingIcon = ""
             pendingMac = ""
+            pendingNoSftp = false
             pendingCommands = []
             continue
         }

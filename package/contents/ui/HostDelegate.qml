@@ -119,7 +119,7 @@ QQC2.ItemDelegate {
             }
 
             QQC2.ToolButton {
-                visible: hostDelegate.hovered && !root.isLocalHost(itemData.hostname)
+                visible: hostDelegate.hovered && !root.isLocalHost(itemData.hostname) && !itemData.noSftp
                 Layout.preferredWidth: Kirigami.Units.iconSizes.medium
                 Layout.preferredHeight: Kirigami.Units.iconSizes.medium
                 Layout.rightMargin: -Kirigami.Units.mediumSpacing
@@ -129,7 +129,7 @@ QQC2.ItemDelegate {
                 QQC2.ToolTip.text: i18n("Open in File Manager")
                 QQC2.ToolTip.visible: hovered
                 QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
-                onClicked: root.openSftp(itemData.host, itemData.user, itemData.hostname)
+                onClicked: root.openSftp(itemData.host, itemData.user, itemData.hostname, itemData.port)
             }
 
             QQC2.ToolButton {
