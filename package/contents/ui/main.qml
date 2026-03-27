@@ -357,9 +357,9 @@ PlasmoidItem {
 
     function connectToHost(hostAlias) {
         var host = findHost(hostAlias)
-        var cmd = (host && isLocalHost(host.hostname))
+        var cmd = "setsid " + ((host && isLocalHost(host.hostname))
             ? plasmoid.configuration.terminalCommand.replace(/\s+(-e|--|--command)\s*$/, "")
-            : plasmoid.configuration.terminalCommand + " ssh " + ShellUtil.shellQuote(hostAlias)
+            : plasmoid.configuration.terminalCommand + " ssh " + ShellUtil.shellQuote(hostAlias))
         launcher.disconnectSource(cmd)
         launcher.connectSource(cmd)
         recordConnection(hostAlias)
@@ -423,9 +423,9 @@ PlasmoidItem {
         var quoted = ShellUtil.shellQuote(command)
         var cmd
         if (host && isLocalHost(host.hostname)) {
-            cmd = plasmoid.configuration.terminalCommand + " ${SHELL:-/bin/sh} -lic " + quoted
+            cmd = "setsid " + plasmoid.configuration.terminalCommand + " ${SHELL:-/bin/sh} -lic " + quoted
         } else {
-            cmd = plasmoid.configuration.terminalCommand + " ssh -t " + ShellUtil.shellQuote(hostAlias) + " " + quoted
+            cmd = "setsid " + plasmoid.configuration.terminalCommand + " ssh -t " + ShellUtil.shellQuote(hostAlias) + " " + quoted
         }
         launcher.disconnectSource(cmd)
         launcher.connectSource(cmd)
@@ -433,7 +433,7 @@ PlasmoidItem {
     }
 
     function connectFromSearch(text) {
-        var cmd = plasmoid.configuration.terminalCommand + " ssh " + ShellUtil.shellQuote(text)
+        var cmd = "setsid " + plasmoid.configuration.terminalCommand + " ssh " + ShellUtil.shellQuote(text)
         launcher.connectSource(cmd)
         root.expanded = false
     }
