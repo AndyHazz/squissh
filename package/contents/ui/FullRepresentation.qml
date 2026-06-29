@@ -209,6 +209,83 @@ PlasmaExtras.Representation {
 
 }
 
+    Rectangle {
+        id: passphraseOverlay
+        anchors.fill: parent
+        visible: false
+        z: 100
+        color: Kirigami.Theme.backgroundColor
+
+        ColumnLayout {
+            anchors.centerIn: parent
+            width: parent.width - Kirigami.Units.gridUnit * 4
+            spacing: Kirigami.Units.largeSpacing
+
+            Kirigami.Heading {
+                text: i18n("SSH Key Passphrase")
+                level: 3
+                Layout.fillWidth: true
+            }
+
+            QQC2.Label {
+                text: root._pendingSftp
+                    ? i18n("Enter passphrase for: %1", root._pendingSftp.identityFile)
+                    : ""
+                wrapMode: Text.Wrap
+                Layout.fillWidth: true
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+            }
+
+            QQC2.TextField {
+                id: passphraseField
+                Layout.fillWidth: true
+                echoMode: TextInput.Password
+                placeholderText: i18n("Passphrase")
+                Keys.onReturnPressed: passphraseOverlay.confirm()
+                Keys.onEscapePressed: passphraseOverlay.dismiss()
+            }
+
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                spacing: Kirigami.Units.smallSpacing
+
+                QQC2.Button {
+                    text: i18n("Cancel")
+                    onClicked: passphraseOverlay.dismiss()
+                }
+
+                QQC2.Button {
+                    text: i18n("Open")
+                    highlighted: true
+                    onClicked: passphraseOverlay.confirm()
+                }
+            }
+        }
+
+        function confirm() {
+            var pass = passphraseField.text
+            passphraseField.clear()
+            visible = false
+            root._addKeyToAgent(pass)
+        }
+
+        function dismiss() {
+            passphraseField.clear()
+            visible = false
+            root._pendingSftp = null
+        }
+    }
+
+    Connections {
+        target: root
+        function onSftpPassphraseNeeded() {
+            passphraseField.clear()
+            passphraseOverlay.visible = true
+            passphraseField.forceActiveFocus()
+        }
+    }
+
     function hostItem(h, discovered) {
         var lastConn = root.connectionHistory[h.host] || 0
         return {
@@ -223,7 +300,8 @@ PlasmaExtras.Representation {
             discovered: discovered || false,
             lastConnected: lastConn,
             mac: h.mac || "",
-            commands: h.commands || []
+            commands: h.commands || [],
+            identityFile: h.identityFile || ""
         }
     }
 

@@ -129,7 +129,7 @@ QQC2.ItemDelegate {
                 QQC2.ToolTip.text: i18n("Open in File Manager")
                 QQC2.ToolTip.visible: hovered
                 QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
-                onClicked: root.openSftp(itemData.host, itemData.user, itemData.hostname, itemData.port)
+                onClicked: root.openSftp(itemData.host, itemData.user, itemData.hostname, itemData.port, itemData.identityFile)
             }
 
             QQC2.ToolButton {
