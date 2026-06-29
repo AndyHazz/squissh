@@ -71,6 +71,8 @@ PlasmoidItem {
     readonly property int refreshCooldown: 30000 // 30 seconds
     readonly property var _localHostnames: ["localhost", "127.0.0.1", "::1"]
     property string terminalIcon: "utilities-terminal"
+    property var _pendingSftp: null
+    signal sftpPassphraseNeeded()
 
     function isLocalHost(hostname) {
         return _localHostnames.indexOf(hostname.toLowerCase()) >= 0
@@ -240,6 +242,43 @@ PlasmoidItem {
         }
     }
 
+    Plasma5Support.DataSource {
+        id: keyChecker
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            disconnectSource(sourceName)
+            var exitCode = (data["stdout"] || "1").trim()
+            if (exitCode !== "0") {
+                root.sftpPassphraseNeeded()
+            } else {
+                root._doOpenSftp()
+            }
+        }
+    }
+
+    Plasma5Support.DataSource {
+        id: sshAdder
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            disconnectSource(sourceName)
+            if (data["exit code"] !== 0) {
+                sshKeyNotification.text = i18n("Failed to unlock SSH key. Check your passphrase.")
+                sshKeyNotification.sendEvent()
+            }
+            // xdg-open is launched inside the combined command; nothing more to do here
+        }
+    }
+
+    Notification {
+        id: sshKeyNotification
+        componentName: "plasma_workspace"
+        eventId: "notification"
+        title: i18n("SquiSSH")
+        iconName: "dialog-password"
+    }
+
     function loadConfig() {
         var path = plasmoid.configuration.sshConfigPath || "~/.ssh/config"
         configReader.connectSource("cat \"" + path.replace("~", "$HOME") + "\"")
@@ -396,12 +435,75 @@ PlasmoidItem {
         return StateManager.isGroupCollapsed(collapsedGroups, groupName)
     }
 
-    function openSftp(host, user, hostname, port) {
+    function openSftp(host, user, hostname, port, identityFile) {
+        _pendingSftp = { user: user, hostname: hostname, port: port, identityFile: identityFile || "" }
+        if (identityFile) {
+            var shellKey = identityFile.replace(/^~\//, "${HOME}/").replace(/^~$/, "${HOME}")
+            keyChecker.connectSource('ssh-keygen -y -P "" -f "' + shellKey.replace(/"/g, '\\"') + '" >/dev/null 2>&1; echo $?')
+        } else {
+            _doOpenSftp()
+        }
+    }
+
+    function _doOpenSftp() {
+        if (!_pendingSftp) return
+        var s = _pendingSftp
+        _pendingSftp = null
         var url = "sftp://"
-        if (user) url += user + "@"
-        url += hostname
-        if (port && port !== "22") url += ":" + port
-        launcher.connectSource("xdg-open " + url)
+        if (s.user) url += s.user + "@"
+        url += s.hostname
+        if (s.port && s.port !== "22") url += ":" + s.port
+        launcher.connectSource("xdg-open " + ShellUtil.shellQuote(url))
+        root.expanded = false
+    }
+
+    function _addKeyToAgent(passphrase) {
+        if (!_pendingSftp) return
+        var s = _pendingSftp
+        _pendingSftp = null
+
+        var shellKey = s.identityFile.replace(/^~\//, "${HOME}/").replace(/^~$/, "${HOME}")
+        var quotedPass = ShellUtil.shellQuote(passphrase)
+        var quotedKey  = ShellUtil.shellQuote(shellKey)
+        var quotedHost = ShellUtil.shellQuote(s.hostname)
+        var quotedPort = ShellUtil.shellQuote((s.port && s.port !== "") ? s.port : "22")
+
+        var url = "sftp://"
+        if (s.user) url += s.user + "@"
+        url += s.hostname
+        if (s.port && s.port !== "22") url += ":" + s.port
+        var quotedUrl = ShellUtil.shellQuote(url)
+
+        // One shell context so AGENT_SOCK is shared across all steps.
+        // The background subshell monitors the TCP connection to the host and
+        // removes the key from the agent once the tab is closed.
+        var cmd =
+            "DIR=$(mktemp -d /tmp/.sq.XXXXXX) && " +
+            "chmod 700 \"$DIR\" && " +
+            "printf '%s' " + quotedPass + " > \"$DIR/p\" && " +
+            "printf '#!/bin/sh\\n' > \"$DIR/a\" && " +
+            "printf 'cat \"%s\"\\n' \"$DIR/p\" >> \"$DIR/a\" && " +
+            "chmod 700 \"$DIR/a\" && " +
+            "systemctl --user enable --now ssh-agent.socket 2>/dev/null; " +
+            "AGENT_SOCK=\"${SSH_AUTH_SOCK:-${XDG_RUNTIME_DIR}/ssh-agent.socket}\"; " +
+            "SSH_AUTH_SOCK=\"$AGENT_SOCK\" SSH_ASKPASS=\"$DIR/a\" SSH_ASKPASS_REQUIRE=force ssh-add \"" +
+            shellKey.replace(/"/g, '\\"') + "\" 2>&1; " +
+            "rm -rf \"$DIR\"; " +
+            "HOST=" + quotedHost + "; " +
+            "PORT=" + quotedPort + "; " +
+            "KEY=$(eval echo " + quotedKey + "); " +
+            "AGENT=\"$AGENT_SOCK\"; " +
+            "( HOST_IP=$(getent hosts \"$HOST\" 2>/dev/null | awk 'NR==1{print $1}'); " +
+            "MATCH=\"${HOST_IP:-$HOST}\"; " +
+            "I=0; while [ $I -lt 15 ]; do sleep 1; " +
+            "ss -tn state established 2>/dev/null | grep -qF \"$MATCH:$PORT\" && break; " +
+            "I=$((I+1)); done; " +
+            "while ss -tn state established 2>/dev/null | grep -qF \"$MATCH:$PORT\"; do sleep 2; done; " +
+            "SSH_AUTH_SOCK=\"$AGENT\" ssh-add -d \"${KEY}.pub\" 2>/dev/null || " +
+            "SSH_AUTH_SOCK=\"$AGENT\" ssh-add -d \"$KEY\" 2>/dev/null ) & " +
+            "env SSH_AUTH_SOCK=\"$AGENT_SOCK\" setsid xdg-open " + quotedUrl + " &"
+
+        sshAdder.connectSource(cmd)
         root.expanded = false
     }
 
